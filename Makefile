@@ -1,5 +1,5 @@
 MODULE_big = system_stats
-
+CFLAGS += -v
 #Detect OS type and accordingly include the source files for compilation
 UNAME := $(shell uname)
 

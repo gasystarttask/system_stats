@@ -1,0 +1,45 @@
+name: Code Checks
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  c-code-check:
+    name: C Code Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy bear build-essential postgresql-server-dev-all
+      
+      - name: Build the project with bear
+        run: |
+          bear -- make clean
+          bear -- make
+
+      - name: Run clang-tidy
+        run: |
+          clang-tidy **/*.c --checks="clang-analyzer-security.*,bugprone-*,performance-*" --warnings-as-errors=*
+
+  # sql-code-check:
+  #   name: SQL Code Check
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+
+  #     - name: Install sqlfluff
+  #       run: pip install sqlfluff
+
+  #     - name: Run sqlfluff
+  #       run: sqlfluff lint **/*.sql
